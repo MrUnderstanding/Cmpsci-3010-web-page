@@ -1,84 +1,72 @@
 <!DOCTYPE html>
-  <html lang="en-us">
-
+<html lang="en-us">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>Account creation</title>
-    
   <style>
-h1 {text-align: center;}
-</style>
+    h1 {text-align: center;}
+  </style>
 </head>
-
 <body>
-  <h1>Account Signup </h1>
+  <h1>Account Signup</h1>
+  <form onsubmit="handleAccountRegistration(event)">
   
-<form>
-  
-   <label for="fname"><b>First name
-   :</label><br>
-  <input type="text" id="fame" name="fname"  required><br>
-    
-    
-    <label for="lname"><b>Last name
-   :</label><br>
-  <input type="text" id="lame" name="lname"  required><br>
-  
-  
-  
- <label for="address 1"><b>Address 1
-   :</label><br>
-  <input type="text" id="address1" name="address1"  required><br>
-  
-  <label for="address"><b>Address 2
-   :</label><br>
-  <input type="text" id="address2" name="address2"  ><br>
-  
- <label for="city"><b>City 
-   :</label><br>
-  <input type="text" id="city" name="city"  required><br>
-  
-  
-  <label for="State">State</label>
+<!--  <label for="Username"><b>Username:</b></label><br>
+<input type="text" id="uname" name="uname" required><br> -->
 
-<select name="state" id="state">
-<option value=""></option>
-  <option value="Missouri">Missouri</option>
-  <option value="Illinois">Illinois</option>
-  <option value="Texas">Texas</option>
-</select>
-<br>
+    <label for="fname"><b>First name:</b></label><br>
+    <input type="text" id="fname" name="fname" required><br>
 
-<label for="zip"><b>Zip Code
-   :</label><br>
-  <input type="text" id="zip" name="zip"  required><br>
+    <label for="lname"><b>Last name:</b></label><br>
+    <input type="text" id="lname" name="lname" required><br>
 
-<label for="phone"><b>Phone Number
-   :</label><br>
-  <input type="text" id="phone" name="phone"  required><br>
+    <label for="address1"><b>Address 1:</b></label><br>
+    <input type="text" id="address1" name="address1" required><br>
 
-<label for="email"><b>Email
-   :</label><br>
-  <input type="text" id="email" name="email"  required><br>
-  
-  <input type="submit" value="Submit">
-  <input type="reset" value="Reset">
-  
-</form>
+    <label for="address2"><b>Address 2:</b></label><br>
+    <input type="text" id="address2" name="address2"><br>
+
+    <label for="city"><b>City:</b></label><br>
+    <input type="text" id="city" name="city" required><br>
+
+    <label for="state"><b>State:</b></label><br>
+    <select name="state" id="state">
+      <option value=""></option>
+      <option value="Missouri">Missouri</option>
+      <option value="Illinois">Illinois</option>
+      <option value="Texas">Texas</option>
+    </select><br>
+
+    <label for="zip"><b>Zip Code:</b></label><br>
+    <input type="text" id="zip" name="zip" required><br>
+
+    <label for="phone"><b>Phone Number:</b></label><br>
+    <input type="text" id="phone" name="phone" required><br>
+
+    <label for="email"><b>Email:</b></label><br>
+    <input type="text" id="email" name="email" required><br>
 
 
 
-<nav>
-  <a href="homepage.html">Homepage</a>|
-  <a href="registration.html">Registration</> |
-  <a href="login.html">Login page</a> |
-  <a href="account.html">Account</a>
-  <a href="logout.html">Logout</a>
+    <input type="submit" value="Submit">
+    <input type="reset" value="Reset">
+  </form>
 
 
-</nav>
+   <div id="userInfo"></div>
 
+  <nav>
+    <a href="homepage.html">Homepage</a> 
+    <a href="registration.html" id="registrationLink">Registration</a> 
+    <a href="login.html" id="loginLink">Login</a> 
+    <a href="account.html" id="accountLink" style="display: none;">Account</a>
+    <a href="info.html">User Info</a> 
+    <a href="logout.html" id="logoutLink" style="display: none;">Logout</a>
+  </nav>
+
+
+  <script src="script.js"></script>
 </body>
-
 </html>
