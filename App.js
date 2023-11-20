@@ -1,23 +1,27 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import RegistrationForm from './RegistrationForm';
-import AccountForm from './AccountForm';
-import LoginForm from './LoginForm';
-import Homepage from './Homepage';
+import AccountForm from './my-newss-app/src/AccountForm';
 
-function App() {
+import Homepage from './my-newss-app/src/Homepage';
+import LoginForm from "./my-newss-app/src/LoginForm";
+import LogoutForm from "./my-newss-app/src/LogoutForm";
+import RegistrationForm from "./my-newss-app/src/RegistrationForm";
+
+const App = () => {
   return (
     <Router>
       <div>
         <Switch>
-          <Route path="/registration" component={RegistrationForm} />
           <Route path="/account" component={AccountForm} />
+          <Route path="/logout" component={LogoutForm} />
           <Route path="/login" component={LoginForm} />
-          <Route path="/" component={Homepage} />
+          <Route path="/registration" component={RegistrationForm} />
+          <Route exact path="/" component={Homepage} />
         </Switch>
       </div>
     </Router>
   );
-}
+};
 
-export default App;
+ReactDOM.render(<App />, document.getElementById('root'));
