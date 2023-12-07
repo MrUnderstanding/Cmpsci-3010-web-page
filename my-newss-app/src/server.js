@@ -62,13 +62,12 @@ app.post('/register', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // Check if username already exists in the database
+    
         const existingUser = await dbClient.query('SELECT * FROM user_accounts WHERE user_name = $1', [username]);
         if (existingUser.rows.length > 0) {
             return res.status(400).json({ message: 'Username already exists' });
         }
 
-        // Insert new user into the user_accounts table
         const newUser = await dbClient.query('INSERT INTO user_accounts (user_name, password) VALUES ($1, $2) RETURNING *', [username, password]);
         res.status(201).json({ message: 'Registration successful', user: newUser.rows[0] });
     } catch (error) {
