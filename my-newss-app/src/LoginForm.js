@@ -1,44 +1,45 @@
 import React from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
-function LoginForm() {
+function LoginForm({ handleLogin }) {
     const history = useHistory();
 
-    const handleLogin = (event) => {
+    const loginUser = async (event) => {
         event.preventDefault();
         const username = event.target.uname.value;
         const password = event.target.psw.value;
 
-        const registeredUser = JSON.parse(localStorage.getItem('registeredUser'));
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
 
-        if (registeredUser && registeredUser.username === username && registeredUser.password === password) {
-            localStorage.setItem('loggedInUser', JSON.stringify({ username }));
-            history.push('/'); // Use history.push for navigation
-        } else {
-            alert('Invalid username or password');
+            if (response.ok) {
+                const user = await response.json();
+                localStorage.setItem('loggedInUser', JSON.stringify(user));
+                handleLogin(user); // Update the logged-in user state in the parent component
+                history.push('');
+            } else {
+                console.error('Login failed');
+                alert('Login failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while trying to login.');
         }
     };
 
     return (
-        <form onSubmit={handleLogin}>
-            <label htmlFor="uname"><b>Username:</b></label><br />
-            <input type="text" id="uname" name="uname" required /><br />
-
-            <label htmlFor="psw"><b>Password:</b></label><br />
-            <input type="password" placeholder="Enter Password" name="psw" id="psw" required /><br />
-
+        <form onSubmit={loginUser}>
+            <h1>Username</h1>
+            <input type="text" id="uname" name="uname" required />
+            <h2>Password</h2>
+            <input type="password" id="psw" name="psw" required />
             <input type="submit" value="Submit" />
-            <input type="reset" value="Reset" />
-
-            <div id="userInfo"></div>
-
-            <nav>
-                <Link to="/">Homepage</Link>
-                <Link to="/registration">Registration</Link>
-                <Link to="/login">Login page</Link>
-                <Link to="/account">Account</Link>
-                <Link to="/logout">Logout</Link>
-            </nav>
         </form>
     );
 }
