@@ -8,7 +8,7 @@ const {request, response} = require("express");
 const dbClient = require('../db/client');
 const authRoutes = require('./authRoutes');
 const {post} = require("./login");
-
+const bcrypt = require('bcrypt');
 
 
 
@@ -45,32 +45,38 @@ app.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        const result = await dbClient.query('SELECT * FROM user_accounts WHERE user_name = $1 AND password = $2', [username, password]);
+        const user = await dbClient.query('SELECT * FROM user_accounts WHERE user_name = $1', [username]);
 
-        if (result.rows.length > 0) {
-            res.status(200).json({ message: 'Login successful', user: result.rows[0] });
-        } else {
-            res.status(401).json({ message: 'Invalid credentials' });
+        if (user.rows.length === 0) {
+            return res.status(400).json({ message: 'No user account exists' });
         }
+
+        const match = await bcrypt.compare(password, user.rows[0].password);
+        if (!match) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        res.status(200).json({ message: 'Login successful', userId: user.rows[0].id });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
+
 
 app.post('/register', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // Check if username already exists in the database
         const existingUser = await dbClient.query('SELECT * FROM user_accounts WHERE user_name = $1', [username]);
         if (existingUser.rows.length > 0) {
-            return res.status(400).json({ message: 'Username already exists' });
+            return res.status(409).json({ message: 'Username already exists' });
         }
 
-        // Insert new user into the user_accounts table
-        const newUser = await dbClient.query('INSERT INTO user_accounts (user_name, password) VALUES ($1, $2) RETURNING *', [username, password]);
-        res.status(201).json({ message: 'Registration successful', user: newUser.rows[0] });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = await dbClient.query('INSERT INTO user_accounts (user_name, password) VALUES ($1, $2) RETURNING *', [username, hashedPassword]);
+
+        res.status(201).json({ message: 'Registration successful', userId: newUser.rows[0].id });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Server error' });
@@ -78,38 +84,72 @@ app.post('/register', async (req, res) => {
 });
 
 
-
-app.put('/account/:id', async (req, res) => {
-    const userId = req.params.id;
-    const { fname, lname, address1, address2, city, state, zip, phone, email } = req.body;
-
+app.post('/account', async (req, res) => {
     try {
+        const { userId, fname, lname, address1, address2, city, state, zip, phone, email } = req.body;
+
+        const userDetails = await dbClient.query('SELECT * FROM user_account_details WHERE user_id = $1', [userId]);
+
+        if (userDetails.rows.length > 0) {
+            return res.status(409).json({ message: 'User details already exist' });
+        }
+
+        const insertQuery = `
+            INSERT INTO user_account_details (user_id, first_name, last_name, address_1, address_2, city, state, zip_code, phone_number, email)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING *
+        `;
+        const insertResult = await dbClient.query(insertQuery, [userId, fname, lname, address1, address2, city, state, zip, phone, email]);
+
+        res.status(201).json({ message: 'User details added', userDetails: insertResult.rows[0] });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
+app.get('/account/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
 
         const userDetails = await dbClient.query('SELECT * FROM user_account_details WHERE user_id = $1', [userId]);
 
         if (userDetails.rows.length === 0) {
-
-            const insertQuery = `
-                INSERT INTO user_account_details (user_id, first_name, last_name, address_1, address_2, city, state, zip_code, phone_number, email)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                RETURNING *
-            `;
-            const insertResult = await dbClient.query(insertQuery, [userId, fname, lname, address1, address2, city, state, zip, phone, email]);
-            res.status(201).json({ message: 'User details added', userDetails: insertResult.rows[0] });
-        } else {
-
-            const updateQuery = `
-                UPDATE user_account_details
-                SET first_name = $2, last_name = $3, address_1 = $4, address_2 = $5, city = $6, state = $7, zip_code = $8, phone_number = $9, email = $10
-                WHERE user_id = $1
-                RETURNING *
-            `;
-            const updateResult = await dbClient.query(updateQuery, [userId, fname, lname, address1, address2, city, state, zip, phone, email]);
-            res.status(200).json({ message: 'User details updated', updatedUserDetails: updateResult.rows[0] });
+            return res.status(204).json({ message: 'No data available for this user' });
         }
+
+        res.status(200).json({ message: 'User account details', userDetails: userDetails.rows });
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ message: 'An error occurred while processing your request' });
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Account Endpoint PUT
+app.put('/account/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { fname, lname, address1, address2, city, state, zip, phone, email } = req.body;
+
+        const userDetails = await dbClient.query('SELECT * FROM user_account_details WHERE user_id = $1', [userId]);
+
+        if (userDetails.rows.length === 0) {
+            return res.status(404).json({ message: 'No user details found for the provided ID' });
+        }
+
+        const updateQuery = `
+            UPDATE user_account_details
+            SET first_name = $2, last_name = $3, address_1 = $4, address_2 = $5, city = $6, state = $7, zip_code = $8, phone_number = $9, email = $10
+            WHERE user_id = $1
+            RETURNING *
+        `;
+        const updateResult = await dbClient.query(updateQuery, [userId, fname, lname, address1, address2, city, state, zip, phone, email]);
+
+        res.status(200).json({ message: 'User details updated', updatedUserDetails: updateResult.rows[0] });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 app.get('/users', async (req, res) => {
