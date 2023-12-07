@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const dbClient = require('../db/client');
-const authRoutes = require('./authRoutes');
+
 // Login endpoint
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
